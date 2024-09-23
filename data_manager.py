@@ -1,5 +1,5 @@
 import os
-
+import pathlib
 import pandas  # pip install pandas
 from dotenv import load_dotenv
 from google.auth.transport.requests import Request  # pip install google-api-python-client
@@ -11,7 +11,8 @@ from googleapiclient.errors import HttpError
 load_dotenv()
 
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
-SPREADSHEET_ID = os.getenv("MY_SPREADSHEET_ID")
+SPREADSHEET_ID = os.environ.get("MY_SPREADSHEET_ID")
+CURRENT_PATH = pathlib.Path(__file__).parent.resolve()
 
 
 class DataManager:
@@ -24,15 +25,15 @@ class DataManager:
         reads csv data file using pandas
         """
         credentials = None
-        if os.path.exists("token.json"):
-            credentials = Credentials.from_authorized_user_file("token.json", SCOPES)
+        if os.path.exists(f"{CURRENT_PATH}/token.json"):
+            credentials = Credentials.from_authorized_user_file(f"{CURRENT_PATH}/token.json", SCOPES)
         if not credentials or not credentials.valid:
             if credentials and credentials.expired and credentials.refresh_token:
                 credentials.refresh(Request())
             else:
-                flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
+                flow = InstalledAppFlow.from_client_secrets_file(f'{CURRENT_PATH}/credentials.json', SCOPES)
                 credentials = flow.run_local_server(port=0)
-            with open("token.json", "w") as token:
+            with open(f"{CURRENT_PATH}/token.json", "w") as token:
                 token.write(credentials.to_json())
         self.credentials = credentials
 
